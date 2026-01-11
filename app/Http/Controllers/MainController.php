@@ -20,7 +20,8 @@ use Illuminate\Pagination\Paginator;
 
 class MainController extends Controller
 {
-    //
+    // ... các phương thức index, aboutUs, nhahang, idnhahang, datban, timkiem giữ nguyên ...
+
     public function index(){
         return view('index')->with('route', 'TrangChu');
     }
@@ -60,7 +61,6 @@ class MainController extends Controller
             ->with('so_luong_ban', $so_luong_ban)
             ->with('bans', $bans)
             ->with('nhanvien', $nhanvien)
-            ->with('nhanvien', $nhanvien)
             ->with('danhgias', $danhgias)
             ->with('alert', '0')
         ;
@@ -99,7 +99,6 @@ class MainController extends Controller
             ->with('nhanvien', $nhanvien)
             ->with('alert', '1')
         ;
-        // return Redirect('/NhaHang/nha-hang='.$request->ID_nha_hang);
     }
 
     public function timkiem(Request $request){
@@ -128,17 +127,21 @@ class MainController extends Controller
         return view('auth.register');
     }
 
-    // Register;
+    // PHẦN CẬP NHẬT: Xử lý Đăng ký
     public function storeReg(Request $request){
         $request->validate([
-            'Ten_nha_hang' => 'required | unique:users',
-            'Dia_chi' => 'required',
+            'role' => 'required|in:quan_ly,khach_hang',
+            // Chỉ yêu cầu tên nhà hàng và địa chỉ nếu là quan_ly
+            'Ten_nha_hang' => 'required_if:role,quan_ly|nullable|unique:users,Ten_nha_hang',
+            'Dia_chi' => 'required_if:role,quan_ly|nullable',
             'SDT' => 'required | digits:10 |unique:users',
             'email' => 'required | email | unique:users',
             'Ten_dang_nhap' => 'required | unique:users',
             'password' => 'required | min:5 | confirmed',
         ],[
+            'Ten_nha_hang.required_if' => '* Tên nhà hàng là bắt buộc đối với Quản lý.',
             'Ten_nha_hang.unique' => '* Tên nhà hàng đã tồn tại.',
+            'Dia_chi.required_if' => '* Địa chỉ là bắt buộc đối với Quản lý.',
             'email.unique' => '* Email đã tồn tại.',
             'Ten_dang_nhap.unique' => '* Tên đăng nhập đã tồn tại.',
             'password.min' => '* Mật khẩu phải chứa ít nhất 5 kí tự.',
@@ -148,84 +151,73 @@ class MainController extends Controller
         ]);
 
         User::create([
-            'Ten_nha_hang' => $request->input('Ten_nha_hang'),
-            'Dia_chi' => $request->input('Dia_chi'),
+            'role' => $request->input('role'),
+            // Lưu thông tin nhà hàng nếu là quản lý, ngược lại để null
+            'Ten_nha_hang' => $request->input('role') === 'quan_ly' ? $request->input('Ten_nha_hang') : null,
+            'Dia_chi' => $request->input('role') === 'quan_ly' ? $request->input('Dia_chi') : null,
             'SDT' => $request->input('SDT'),
             'email' => $request->input('email'),
             'Ten_dang_nhap' => $request->input('Ten_dang_nhap'),
             'password' => Hash::make($request->input('password')),
         ]);
 
-        return redirect()->route('auth.login');
+        return redirect()->route('auth.login')->with('thanhcong', 'Đăng ký thành công!');
     }
 
-    // Login Check;
+    // ... các phương thức loginCheck, dangXuat, dieuhuong, edit, update, destroy giữ nguyên ...
+// Login Check;
     public function loginCheck(Request $request){
         $request->validate([
             'ten_dang_nhap' => 'required',
             'password' => 'required | min:5',
         ]);
 
+        // Tìm thông tin theo Email, Tên đăng nhập hoặc tài khoản Nhân viên
         $userinfoEmail = User::where('email', $request->ten_dang_nhap)->first();
         $userinfoUser = User::where('Ten_dang_nhap', $request->ten_dang_nhap)->first();
         $staffInfo = NhanVien::where('tai_khoan', $request->ten_dang_nhap)->first(); 
-        if (!$userinfoEmail){
-            
-            if (!$userinfoUser){
-                
-                if (!$staffInfo){
 
-                        return back()->with('thatbai', '* Tài khoản đăng nhập hoặc email không tồn tại');
-
-
-                } else {
-                    if($request->password ===   $staffInfo->mat_khau){
-                        $checkRole = ChucVu::where('ID_chuc_vu', $staffInfo->chuc_vu_id)->where('ID_nha_hang', $staffInfo->ID_nha_hang)->first(); 
-                        $request->session()
-                                ->put(['DangNhap' => $staffInfo->ID_nha_hang,
-                                       'CheckRole' => $checkRole->quyen,             
-                                       'TenChucVu' => $checkRole->ten_chuc_vu,             
-                                       'TenDangNhap' => $staffInfo->tai_khoan,             
-                                       'NhanVien' => $staffInfo,             
-                                    ]);
-                        return view('admin.trangchu.trangchu')->with('data', User::where('id',session('DangNhap'))->first());
-                    } else {
-                        return back()->with('thatbai','* Mật khẩu nhập không đúng, vui lòng nhập lại');
-                    }
-                }
-
+        // 1. Kiểm tra nếu là Nhân viên nhà hàng
+        if ($staffInfo) {
+            if($request->password === $staffInfo->mat_khau){
+                $checkRole = ChucVu::where('ID_chuc_vu', $staffInfo->chuc_vu_id)
+                                    ->where('ID_nha_hang', $staffInfo->ID_nha_hang)->first(); 
+                $request->session()->put([
+                    'DangNhap' => $staffInfo->ID_nha_hang,
+                    'CheckRole' => $checkRole->quyen,             
+                    'TenChucVu' => $checkRole->ten_chuc_vu,             
+                    'TenDangNhap' => $staffInfo->tai_khoan,             
+                    'NhanVien' => $staffInfo,             
+                ]);
+                // Nhân viên luôn vào trang quản trị
+                return view('admin.trangchu.trangchu')->with('data', User::where('id', session('DangNhap'))->first());
             } else {
-                if (Hash::check($request->password, $userinfoUser->password)){
-                    $request->session()->put('DangNhap', $userinfoUser->id);
-    
-                    return view('admin.trangchu.trangchu')->with('data', User::where('id',session('DangNhap'))->first());
-                } else {
-                    return back()->with('thatbai','* Mật khẩu nhập không đúng, vui lòng nhập lại');
-                }
-            }
-        } else {
-            if (Hash::check($request->password, $userinfoEmail->password)){
-                $request->session()->put('DangNhap', $userinfoEmail->id);
-
-                return view('admin.trangchu.trangchu')->with('data', User::where('id',session('DangNhap'))->first());
-            } else {
-                return back()->with('thatbai','* Mật khẩu nhập không đúng, vui lòng nhập lại');
+                return back()->with('thatbai','* Mật khẩu nhân viên không đúng');
             }
         }
 
-        // $userinfoUser = User::where('Ten_dang_nhap', $request->ten_dang_nhap)->first();
-        // if (!$userinfoUser){
-        //     return back()->with('thatbai','* Tên đăng nhập hoặc Email không tồn tại!');
-        // } else {
-        //     if (Hash::check($request->password, $userinfoUser->password)){
-        //         $request->session()->put('DangNhap', $userinfoUser->id);
+        // 2. Kiểm tra nếu là User (Quản lý hoặc Khách hàng)
+        $user = $userinfoEmail ? $userinfoEmail : $userinfoUser;
 
-        //         return view('admin.trangchu.trangchu')->with('data', User::where('id',session('DangNhap'))->first());
-        //     } else {
-        //         return back()->with('thatbai','* Mật khẩu nhập không đúng, vui lòng nhập lại');
-        //     }
-        // }
+        if ($user) {
+            if (Hash::check($request->password, $user->password)) {
+                $request->session()->put('DangNhap', $user->id);
+                $request->session()->put('UserRole', $user->role); // Lưu role vào session để kiểm tra
 
+                // PHÂN QUYỀN ĐIỀU HƯỚNG
+                if ($user->role === 'quan_ly') {
+                    // Nếu là Quản lý: Vào trang quản trị
+                    return view('admin.trangchu.trangchu')->with('data', $user);
+                } else {
+                    // Nếu là Khách hàng: Quay về trang chủ
+                    return redirect('/')->with('thanhcong', 'Đăng nhập thành công!');
+                }
+            } else {
+                return back()->with('thatbai','* Mật khẩu không đúng, vui lòng nhập lại');
+            }
+        }
+
+        return back()->with('thatbai', '* Tài khoản đăng nhập hoặc email không tồn tại');
     }
 
     function dangXuat(){
@@ -236,7 +228,6 @@ class MainController extends Controller
             session()->pull('TenDangNhap');
             session()->pull('NhanVien');
             return redirect('/');
-            // return session()->get(key:'TenChucVu');
         }
     }
 
@@ -311,36 +302,20 @@ class MainController extends Controller
         ;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-        // sửa
         $data = User::find($id);
         return View('admin.trangchu.sua', ['data'=>$data]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request)
     {
-        // update
         $data = User::find($request->id);
         $data['Ten_nha_hang'] = $request->Ten_nha_hang;
         $data['Dia_chi'] = $request->Dia_chi;
         $data['SDT'] = $request->SDT;
         $data['email'] = $request->email;
         $data['Ten_dang_nhap'] = $request->Ten_dang_nhap;
-        // $data['password'] = $request->password;
         $data['password'] = Hash::make($request->password);
 
         $data->save();
@@ -348,15 +323,8 @@ class MainController extends Controller
 
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        // xóa
         $data = User::find($id);
         
         $data->delete();
@@ -367,8 +335,45 @@ class MainController extends Controller
             session()->pull('TenDangNhap');
             session()->pull('NhanVien');
             return redirect('/');
-            // return session()->get(key:'TenChucVu');
         }
         return redirect('/');
     }
+
+    // Trang chủ khách hàng
+    public function khachHangIndex() {
+        // Kiểm tra nếu chưa đăng nhập thì bắt đăng nhập
+        if (!session()->has('DangNhap')) {
+            return redirect()->route('auth.login');
+        }
+
+        $data = User::where('id', session('DangNhap'))->first();
+        
+        // Nếu là quản lý mà vào nhầm trang này thì cho qua trang admin
+        if($data->role === 'quan_ly') {
+            return redirect('/User/trangchu');
+        }
+
+        return view('khachhang.index', compact('data'));
+    }
+
+    // Cập nhật thông tin khách hàng
+    public function khachHangUpdate(Request $request) {
+        $request->validate([
+            'SDT' => 'required|digits:10',
+            'email' => 'required|email',
+            'password' => 'nullable|min:5|confirmed',
+        ]);
+
+        $user = User::find(session('DangNhap'));
+        $user->SDT = $request->SDT;
+        $user->email = $request->email;
+        
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+        return back()->with('thanhcong', 'Cập nhật thông tin thành công!');
+    }
+    
 }

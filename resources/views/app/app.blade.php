@@ -1,4 +1,3 @@
-<!-- Header -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,50 +22,10 @@
 
 <body style="padding: 0; margin: 0;">
 
-    <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand me-2" href="/"><img src="{{ URL('images1/logo.png') }}" height="44" alt=""
                     loading="lazy"></a>
-
-            {{-- <form action="/tim-kiem" method="POST"
-                class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                @csrf
-                <div class="input-group">
-                    <input type="text" class="form-control bg-light border-0 small" placeholder="Tìm kiếm..."
-                        aria-label="Search" aria-describedby="basic-addon2">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search fa-sm"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item dropdown no-arrow d-sm-none dropstart">
-                    <a class="nav-link dropdown-toggle text-reset" href="#" id="searchDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-search fa-fw"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right p-2 shadow animated--grow-in"
-                        aria-labelledby="searchDropdown">
-                        <form class="form-inline mr-auto w-100 navbar-search dropstart" action="/tim-kiem"
-                            method="POST">
-                            @csrf
-                            <div class="input-group" style="width:300px; margin-top:2px">
-                                <input type="text" name="tim_kiem" class="form-control bg-light border-0 small"
-                                    placeholder="Tìm kiếm..." aria-label="Search" aria-describedby="basic-addon2">
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary" type="submit">
-                                        <i class="fas fa-search fa-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </li>
-            </ul> --}}
 
             <a class="nav-link dropdown-toggle text-reset" href="#" id="searchDropdown" role="button" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
@@ -74,7 +33,7 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right p-2 shadow animated--grow-in" aria-labelledby="searchDropdown">
                 <form class="form-inline mr-auto w-100 navbar-search" action="/tim-kiem" method="POST">
-					@csrf
+                    @csrf
                     <div class="input-group" style="width:300px; margin-top:2px">
                         <input type="text" name="tim_kiem" class="form-control bg-light border-0 small" placeholder="Tìm kiếm nhà hàng..."
                             aria-label="Search" aria-describedby="basic-addon2">
@@ -94,19 +53,6 @@
 
             <div class="collapse navbar-collapse" id="navbarButtons">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    {{-- <form action="/tim-kiem" method="POST"
-						class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-						@csrf
-						<div class="input-group">
-							<input type="text" class="form-control bg-light border-0 small" name="tim_kiem"
-								placeholder="Tìm kiếm..." aria-label="Search" aria-describedby="basic-addon2">
-							<div class="input-group-append">
-								<button class="btn btn-primary" type="submit">
-									<i class="fas fa-search fa-sm"></i>
-								</button>
-							</div>
-						</div>
-					</form> --}}
                 </ul>
 
                 <div class="d-flex align-items-center">
@@ -114,52 +60,45 @@
                     <a href="/GioiThieu"><button type="button" class="btn btn-link px-3 me-2">GIỚI THIỆU</button></a>
                     <a href="/NhaHang"><button type="button" class="btn btn-link px-3 me-2">NHÀ HÀNG</button></a>
 
-                    {{-- @if (Route::has('login'))
-						@auth
-                    		<a href="{{ url('/User/trangchu') }}" class="btn btn-primary btn-rounded">Nhà hàng của bạn</a>
-						@else
-							<a class="btn btn-outline-primary btn-rounded" href="{{ route('auth.login') }}">ĐĂNG NHẬP</a>
-							&ensp;
-							@if (Route::has('register'))
-								<a class="btn btn-primary btn-rounded" href="{{ route('auth.register') }}">ĐĂNG KÝ MIỄN PHÍ</a>
-							@endif
-						@endauth
-            		@endif --}}
-                    {{-- <a class="btn btn-outline-primary btn-rounded" href="{{ route('auth.login') }}">ĐĂNG NHẬP</a>
-						&ensp;
-						<a class="btn btn-primary btn-rounded" href="{{ route('auth.register') }}">ĐĂNG KÝ MIỄN PHÍ</a> --}}
-
                     @if (Session::get('DangNhap'))
-                        <a href="{{ url('/User/trangchu') }}" class="btn btn-primary btn-rounded">Nhà hàng của bạn</a>
+                        {{-- PHÂN QUYỀN: Hiện nút tương ứng với vai trò --}}
+                        @if (Session::get('UserRole') === 'quan_ly' || Session::get('CheckRole') !== null)
+                            {{-- Nút cho Quản lý hoặc Nhân viên --}}
+                            <a href="{{ url('/User/trangchu') }}" class="btn btn-primary btn-rounded me-2">
+                                <i class="fas fa-tasks"></i> QUẢN LÝ
+                            </a>
+                        @else
+                            {{-- Nút cho Khách hàng --}}
+                            <a href="{{ route('khachhang.index') }}" class="btn btn-info btn-rounded me-2 text-white">
+                                <i class="fas fa-user"></i> TRANG CÁ NHÂN
+                            </a>
+                        @endif
+
+                        {{-- Nút Đăng xuất cho tất cả mọi người đã đăng nhập --}}
+                        <a class="btn btn-outline-danger btn-rounded" href="{{ route('auth.logoff') }}">
+                            <i class="fas fa-sign-out-alt"></i> ĐĂNG XUẤT
+                        </a>
                     @else
+                        {{-- Khi chưa đăng nhập --}}
                         <a class="btn btn-outline-primary btn-rounded" href="{{ route('auth.login') }}">ĐĂNG NHẬP</a>
                         &ensp;
-                        <a class="btn btn-primary btn-rounded" href="{{ route('auth.register') }}">ĐĂNG KÝ MIỄN
-                            PHÍ</a>
+                        <a class="btn btn-primary btn-rounded" href="{{ route('auth.register') }}">ĐĂNG KÝ MIỄN PHÍ</a>
                     @endif
 
                 </div>
             </div>
         </div>
     </nav>
-    <!-- Header -->
-
-
-    <!-- Content -->
 
     @yield('content')
 
-    <!-- Content -->
-
-
-    <!-- Footer -->
     <footer class="text-center text-lg-start bg-light text-muted">
         <section class="border-top">
             <div class="container text-center text-md-start mt-5">
                 <div class="row mt-3">
                     <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
                         <h6 class="text-uppercase fw-bold mb-4"> Liên hệ </h6>
-                        <p><i class="fas fa-home me-3"></i> Thừa Thiên - Huế, Việt Nam</p>
+                        <p><i class="fas fa-home me-3"></i> Hà Tĩnh, Việt Nam</p>
                         <p>
                             <i class="fas fa-envelope me-3"></i>
                             restaurantsp@gmail.com
@@ -223,7 +162,6 @@
             </div>
         </section>
     </footer>
-    <!-- Footer -->
 
     <script type="text/javascript" src="{{ URL('js/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ URL('js/jquery.rateyo.js') }}"></script>
@@ -243,10 +181,8 @@
         });
     </script>
 
-    <!-- Scripts -->
     <script>
         $(function() {
-
             $("#rateYo").rateYo({
                 starWidth: "22px",
                 rating: "5.0",
@@ -301,7 +237,6 @@
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.js"></script>
     <script src="{{ URL('js/bootstrap.bundle.min.js') }}"></script>
-    <!-- Scripts -->
 </body>
 
 </html>
