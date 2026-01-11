@@ -20,8 +20,6 @@ use Illuminate\Pagination\Paginator;
 
 class MainController extends Controller
 {
-    // ... các phương thức index, aboutUs, nhahang, idnhahang, datban, timkiem giữ nguyên ...
-
     public function index(){
         return view('index')->with('route', 'TrangChu');
     }
@@ -31,22 +29,21 @@ class MainController extends Controller
     }
 
     public function nhahang(){
-        $users = DB::table('users')->get();
-
-        return view('index')->with('route', 'NhaHang')
-            ->with('users', $users)
-        ;
+        $users = DB::table('users')->where('role', 'quan_ly')->get();
+        return view('index')->with('route', 'NhaHang')->with('users', $users);
     }
 
     public function idnhahang($slug){
-        $users = User::all();
-        $bans = Ban::all();
         $user = User::find($slug);
+        if(!$user) return redirect('/')->with('thatbai', 'Không tìm thấy nhà hàng');
+
+        $users = User::all();
+        $bans = Ban::where('ID_nha_hang', $slug)->get();
         $danhgias = DB::table('danh_gia')->where('ID_nha_hang', $slug)->paginate(3);
 
-        $monan = DB::table('mon_an')->where('ID_nha_hang', $slug)->count();
-        $so_luong_ban = DB::table('ban')->where('ID_nha_hang', $slug)->count();
-        $nhanvien = DB::table('nhan_vien')->where('ID_nha_hang', $slug)->count();
+        $monan = MonAn::where('ID_nha_hang', $slug)->count();
+        $so_luong_ban = $bans->count();
+        $nhanvien = NhanVien::where('ID_nha_hang', $slug)->count();
 
         $soluongdanhgia = DB::table('danh_gia')->where('ID_nha_hang', $slug)->count();
         session()->put('soluongdanhgia', $soluongdanhgia);
@@ -55,325 +52,220 @@ class MainController extends Controller
         session()->put('trungbinhdanhgia', $trungbinhdanhgia);
 
         return view('index')->with('route', 'id-nha-hang')
-            ->with('users', $users)
-            ->with('user', $user)
-            ->with('monan', $monan)
-            ->with('so_luong_ban', $so_luong_ban)
-            ->with('bans', $bans)
-            ->with('nhanvien', $nhanvien)
-            ->with('danhgias', $danhgias)
-            ->with('alert', '0')
-        ;
+            ->with(compact('users', 'user', 'monan', 'so_luong_ban', 'bans', 'nhanvien', 'danhgias'))
+            ->with('alert', '0');
     }
 
     public function datban($id, Request $request){
-        $bans = Ban::all();
+        $ban = Ban::where('ID_nha_hang', $request->ID_nha_hang)
+                  ->where('ten_ban', $request->ban)
+                  ->first();
 
-        foreach($bans as $bann){
-            if(($bann['ten_ban'] == $request->ban) && ($bann['ID_nha_hang'] == $request->ID_nha_hang)){
-                $ban = Ban::find($bann['ID_ban']);
-                $ban['dat_truoc'] = $request->time.' ngày '.$request->ngay;
-                $ban['datban_ten'] = $request->ten;
-                $ban['datban_so_nguoi'] = $request->so_nguoi;
-                $ban['datban_ngay'] = $request->ngay;
-                $ban['datban_time'] = $request->time;
-
-                $ban->save();
-            }
+        if($ban){
+            $ban->dat_truoc = $request->time.' ngày '.$request->ngay;
+            $ban->datban_ten = session('TenDangNhap') ?? $request->ten;
+            $ban->datban_so_nguoi = $request->so_nguoi;
+            $ban->datban_ngay = $request->ngay;
+            $ban->datban_time = $request->time;
+            $ban->save();
         }
 
-        $users = User::all();
-        $bans = Ban::all();
-        $user = User::find($request->ID_nha_hang);
-
-        $monan = DB::table('mon_an')->where('ID_nha_hang', $request->ID_nha_hang)->count();
-        $so_luong_ban = DB::table('ban')->where('ID_nha_hang', $request->ID_nha_hang)->count();
-        $nhanvien = DB::table('nhan_vien')->where('ID_nha_hang', $request->ID_nha_hang)->count();
-
-        return view('index')->with('route', 'id-nha-hang')
-            ->with('users', $users)
-            ->with('user', $user)
-            ->with('monan', $monan)
-            ->with('so_luong_ban', $so_luong_ban)
-            ->with('bans', $bans)
-            ->with('nhanvien', $nhanvien)
-            ->with('alert', '1')
-        ;
+        return redirect('/NhaHang/nha-hang='.$request->ID_nha_hang)->with('alert', '1');
     }
 
     public function timkiem(Request $request){
+        $query = $request->input('tim_kiem');
         $users = DB::table('users')
-        ->where('Ten_nha_hang', 'like', '%'.$request->input('tim_kiem').'%')
-        ->orWhere('Dia_chi', 'like', '%'.$request->input('tim_kiem').'%')
-        ->orWhere('SDT', $request->input('tim_kiem'))
-        ->orWhere('email', $request->input('tim_kiem'))
-        ->orWhere('Ten_dang_nhap', $request->input('tim_kiem'))
-        ->get();
+            ->where('role', 'quan_ly')
+            ->where(function($q) use ($query) {
+                $q->where('Ten_nha_hang', 'like', '%'.$query.'%')
+                  ->orWhere('Dia_chi', 'like', '%'.$query.'%');
+            })->get();
 
-        if(!$users){
-            $users = DB::table('users')->get();
-        }
-
-        return view('index')->with('route', 'NhaHang')
-            ->with('users', $users)
-        ;
+        if($users->isEmpty()) $users = DB::table('users')->where('role', 'quan_ly')->get();
+        return view('index')->with('route', 'NhaHang')->with('users', $users);
     }
 
-    public function login(){
-        return view('auth.login');
-    }
+    public function login(){ return view('auth.login'); }
+    public function register(){ return view('auth.register'); }
 
-    public function register(){
-        return view('auth.register');
-    }
-
-    // PHẦN CẬP NHẬT: Xử lý Đăng ký
     public function storeReg(Request $request){
         $request->validate([
             'role' => 'required|in:quan_ly,khach_hang',
-            // Chỉ yêu cầu tên nhà hàng và địa chỉ nếu là quan_ly
             'Ten_nha_hang' => 'required_if:role,quan_ly|nullable|unique:users,Ten_nha_hang',
-            'Dia_chi' => 'required_if:role,quan_ly|nullable',
-            'SDT' => 'required | digits:10 |unique:users',
-            'email' => 'required | email | unique:users',
-            'Ten_dang_nhap' => 'required | unique:users',
-            'password' => 'required | min:5 | confirmed',
-        ],[
-            'Ten_nha_hang.required_if' => '* Tên nhà hàng là bắt buộc đối với Quản lý.',
-            'Ten_nha_hang.unique' => '* Tên nhà hàng đã tồn tại.',
-            'Dia_chi.required_if' => '* Địa chỉ là bắt buộc đối với Quản lý.',
-            'email.unique' => '* Email đã tồn tại.',
-            'Ten_dang_nhap.unique' => '* Tên đăng nhập đã tồn tại.',
-            'password.min' => '* Mật khẩu phải chứa ít nhất 5 kí tự.',
-            'password.confirmed' => '* Mật khẩu xác nhận nhập không đúng.',
-            'SDT.digits' => '* Số điện thoại phải có 10 số.',
-            'SDT.unique' => '* Số điện thoại đã tồn tại.',
+            'SDT' => 'required|digits:10|unique:users',
+            'email' => 'required|email|unique:users',
+            'Ten_dang_nhap' => 'required|unique:users',
+            'password' => 'required|min:5|confirmed',
         ]);
 
         User::create([
-            'role' => $request->input('role'),
-            // Lưu thông tin nhà hàng nếu là quản lý, ngược lại để null
-            'Ten_nha_hang' => $request->input('role') === 'quan_ly' ? $request->input('Ten_nha_hang') : null,
-            'Dia_chi' => $request->input('role') === 'quan_ly' ? $request->input('Dia_chi') : null,
-            'SDT' => $request->input('SDT'),
-            'email' => $request->input('email'),
-            'Ten_dang_nhap' => $request->input('Ten_dang_nhap'),
-            'password' => Hash::make($request->input('password')),
+            'role' => $request->role,
+            'Ten_nha_hang' => $request->role === 'quan_ly' ? $request->Ten_nha_hang : null,
+            'Dia_chi' => $request->role === 'quan_ly' ? $request->Dia_chi : null,
+            'SDT' => $request->SDT,
+            'email' => $request->email,
+            'Ten_dang_nhap' => $request->Ten_dang_nhap,
+            'password' => Hash::make($request->password),
         ]);
 
         return redirect()->route('auth.login')->with('thanhcong', 'Đăng ký thành công!');
     }
 
-    // ... các phương thức loginCheck, dangXuat, dieuhuong, edit, update, destroy giữ nguyên ...
-// Login Check;
     public function loginCheck(Request $request){
         $request->validate([
             'ten_dang_nhap' => 'required',
-            'password' => 'required | min:5',
+            'password' => 'required|min:5',
         ]);
 
-        // Tìm thông tin theo Email, Tên đăng nhập hoặc tài khoản Nhân viên
-        $userinfoEmail = User::where('email', $request->ten_dang_nhap)->first();
-        $userinfoUser = User::where('Ten_dang_nhap', $request->ten_dang_nhap)->first();
-        $staffInfo = NhanVien::where('tai_khoan', $request->ten_dang_nhap)->first(); 
+        $userEmail = User::where('email', $request->ten_dang_nhap)->first();
+        $userName = User::where('Ten_dang_nhap', $request->ten_dang_nhap)->first();
+        $staff = NhanVien::where('tai_khoan', $request->ten_dang_nhap)->first(); 
 
-        // 1. Kiểm tra nếu là Nhân viên nhà hàng
-        if ($staffInfo) {
-            if($request->password === $staffInfo->mat_khau){
-                $checkRole = ChucVu::where('ID_chuc_vu', $staffInfo->chuc_vu_id)
-                                    ->where('ID_nha_hang', $staffInfo->ID_nha_hang)->first(); 
+        if ($staff) {
+            if($request->password === $staff->mat_khau){
+                $role = ChucVu::where('ID_chuc_vu', $staff->chuc_vu_id)->first(); 
                 $request->session()->put([
-                    'DangNhap' => $staffInfo->ID_nha_hang,
-                    'CheckRole' => $checkRole->quyen,             
-                    'TenChucVu' => $checkRole->ten_chuc_vu,             
-                    'TenDangNhap' => $staffInfo->tai_khoan,             
-                    'NhanVien' => $staffInfo,             
+                    'DangNhap' => $staff->ID_nha_hang,
+                    'CheckRole' => $role->quyen,
+                    'UserRole' => 'nhan_vien',
+                    'TenDangNhap' => $staff->tai_khoan,
+                    'NhanVien' => $staff,
                 ]);
-                // Nhân viên luôn vào trang quản trị
-                return view('admin.trangchu.trangchu')->with('data', User::where('id', session('DangNhap'))->first());
-            } else {
-                return back()->with('thatbai','* Mật khẩu nhân viên không đúng');
+                return redirect('/User/trangchu');
             }
+            return back()->with('thatbai','* Mật khẩu nhân viên sai');
         }
 
-        // 2. Kiểm tra nếu là User (Quản lý hoặc Khách hàng)
-        $user = $userinfoEmail ? $userinfoEmail : $userinfoUser;
-
+        $user = $userEmail ?? $userName;
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
-                $request->session()->put('DangNhap', $user->id);
-                $request->session()->put('UserRole', $user->role); // Lưu role vào session để kiểm tra
+                $request->session()->put([
+                    'DangNhap' => $user->id,
+                    'UserRole' => $user->role,
+                    'TenDangNhap' => $user->Ten_dang_nhap
+                ]);
 
-                // PHÂN QUYỀN ĐIỀU HƯỚNG
                 if ($user->role === 'quan_ly') {
-                    // Nếu là Quản lý: Vào trang quản trị
-                    return view('admin.trangchu.trangchu')->with('data', $user);
+                    return redirect('/User/trangchu');
                 } else {
-                    // Nếu là Khách hàng: Quay về trang chủ
-                    return redirect('/')->with('thanhcong', 'Đăng nhập thành công!');
+                    return redirect('/')->with('thanhcong', 'Chào mừng '.$user->Ten_dang_nhap);
                 }
-            } else {
-                return back()->with('thatbai','* Mật khẩu không đúng, vui lòng nhập lại');
             }
         }
-
-        return back()->with('thatbai', '* Tài khoản đăng nhập hoặc email không tồn tại');
-    }
-
-    function dangXuat(){
-        if (session()->has('DangNhap')){
-            session()->pull('DangNhap');
-            session()->pull('CheckRole');
-            session()->pull('TenChucVu');
-            session()->pull('TenDangNhap');
-            session()->pull('NhanVien');
-            return redirect('/');
-        }
+        return back()->with('thatbai', '* Tài khoản hoặc mật khẩu không đúng');
     }
 
     public function dieuhuong($slug){
-        $data = User::where('id',session('DangNhap'))->first();
-        $monans = MonAn::all();
-        $nguyenlieus = NguyenLieu::all();
-        $bans = Ban::all();
-        $datmons = DatMon::all();
-        $chucvus = ChucVu::all();
-        $nhanviens = NhanVien::all();
+        $id_nh = session('DangNhap');
+        if(!$id_nh) return redirect('/auth/login');
+        $data = User::find($id_nh);
+        $monans = MonAn::where('ID_nha_hang', $id_nh)->get();
+        $nguyenlieus = NguyenLieu::where('ID_nha_hang', $id_nh)->get();
+        $bans = Ban::where('ID_nha_hang', $id_nh)->get();
+        $datmons = DatMon::where('ID_nha_hang', $id_nh)->get();
+        $chucvus = ChucVu::where('ID_nha_hang', $id_nh)->get();
+        $nhanviens = NhanVien::where('ID_nha_hang', $id_nh)->get();
 
-        $tong_tien['tong_tien'] = 0;
-        $tong_tien['ten_ban_thanh_toan'] = "Chưa chọn bàn";
-        $tong_doanh_thu['so_don_hang'] = 0;
-        $tong_doanh_thu['tong_doanh_thu'] = 0;
-        $tong_doanh_thu['tong_loi_nhuan'] = 0;
-        $tong_doanh_thu['loi_nhuan'] = 0;
-        $doanhthus = array();
-        $bat_dau = '';
-        $ket_thuc = '';
+        $tong_tien = ['tong_tien' => 0, 'ten_ban_thanh_toan' => "Chưa chọn bàn"];
+        $tong_doanh_thu = ['so_don_hang' => 0, 'tong_doanh_thu' => 0, 'tong_loi_nhuan' => 0, 'loi_nhuan' => 0];
 
         return view("admin.{$slug}.{$slug}")
-        ->with('data', $data)
-        ->with('monans', $monans)
-        ->with('nguyenlieus', $nguyenlieus)
-        ->with('bans', $bans)
-        ->with('datmons', $datmons)
-        ->with('tong_tien', $tong_tien)
-        ->with('chucvus', $chucvus)
-        ->with('nhanviens', $nhanviens)
-        ->with('doanhthus', $doanhthus)
-        ->with('tong_doanh_thu', $tong_doanh_thu)
-        ->with('bat_dau', $bat_dau)
-        ->with('ket_thuc', $ket_thuc)
-        ;
-        
+            ->with(compact('data', 'monans', 'nguyenlieus', 'bans', 'datmons', 'tong_tien', 'chucvus', 'nhanviens', 'tong_doanh_thu'))
+            ->with(['doanhthus' => [], 'bat_dau' => '', 'ket_thuc' => '']);
     }
 
     public function dieuhuong2($slug, $slug2){
-        $data = User::where('id',session('DangNhap'))->first();
-        $monans = MonAn::all();
-        $nguyenlieus = NguyenLieu::all();
-        $bans = Ban::all();
-        $datmons = DatMon::all();
-        $chucvus = ChucVu::all();
-        $nhanviens = NhanVien::all();
+        $id_nh = session('DangNhap');
+        $data = User::find($id_nh);
+        $monans = MonAn::where('ID_nha_hang', $id_nh)->get();
+        $nguyenlieus = NguyenLieu::where('ID_nha_hang', $id_nh)->get();
+        $bans = Ban::where('ID_nha_hang', $id_nh)->get();
+        $datmons = DatMon::where('ID_nha_hang', $id_nh)->get();
+        $chucvus = ChucVu::where('ID_nha_hang', $id_nh)->get();
+        $nhanviens = NhanVien::where('ID_nha_hang', $id_nh)->get();
 
-        $tong_tien['tong_tien'] = 0;
-        $tong_tien['ten_ban_thanh_toan'] = "Chưa chọn bàn";
-        $tong_doanh_thu['so_don_hang'] = 0;
-        $tong_doanh_thu['tong_doanh_thu'] = 0;
-        $tong_doanh_thu['tong_loi_nhuan'] = 0;
-        $tong_doanh_thu['loi_nhuan'] = 0;
-        $doanhthus = array();
-        $bat_dau = '';
-        $ket_thuc = '';
+        $tong_tien = ['tong_tien' => 0, 'ten_ban_thanh_toan' => "Chưa chọn bàn"];
+        $tong_doanh_thu = ['so_don_hang' => 0, 'tong_doanh_thu' => 0, 'tong_loi_nhuan' => 0, 'loi_nhuan' => 0];
 
         return view("admin.{$slug}.{$slug2}")
-        ->with('data', $data)
-        ->with('monans', $monans)
-        ->with('nguyenlieus', $nguyenlieus)
-        ->with('bans', $bans)
-        ->with('datmons', $datmons)
-        ->with('tong_tien', $tong_tien)
-        ->with('chucvus', $chucvus)
-        ->with('nhanviens', $nhanviens)
-        ->with('doanhthus', $doanhthus)
-        ->with('tong_doanh_thu', $tong_doanh_thu)
-        ->with('bat_dau', $bat_dau)
-        ->with('ket_thuc', $ket_thuc)
-        ;
+            ->with(compact('data', 'monans', 'nguyenlieus', 'bans', 'datmons', 'tong_tien', 'chucvus', 'nhanviens', 'tong_doanh_thu'))
+            ->with(['doanhthus' => [], 'bat_dau' => '', 'ket_thuc' => '']);
     }
 
-    public function edit($id)
-    {
-        $data = User::find($id);
-        return View('admin.trangchu.sua', ['data'=>$data]);
-    }
-
-    public function update(Request $request)
-    {
-        $data = User::find($request->id);
-        $data['Ten_nha_hang'] = $request->Ten_nha_hang;
-        $data['Dia_chi'] = $request->Dia_chi;
-        $data['SDT'] = $request->SDT;
-        $data['email'] = $request->email;
-        $data['Ten_dang_nhap'] = $request->Ten_dang_nhap;
-        $data['password'] = Hash::make($request->password);
-
-        $data->save();
-        return Redirect('/User/trangchu');
-
-    }
-
-    public function destroy($id)
-    {
-        $data = User::find($id);
-        
-        $data->delete();
-        if (session()->has('DangNhap')){
-            session()->pull('DangNhap');
-            session()->pull('CheckRole');
-            session()->pull('TenChucVu');
-            session()->pull('TenDangNhap');
-            session()->pull('NhanVien');
-            return redirect('/');
-        }
+    public function dangXuat(){
+        session()->flush();
         return redirect('/');
     }
 
-    // Trang chủ khách hàng
+    // TRANG CÁ NHÂN KHÁCH HÀNG
     public function khachHangIndex() {
-        // Kiểm tra nếu chưa đăng nhập thì bắt đăng nhập
-        if (!session()->has('DangNhap')) {
-            return redirect()->route('auth.login');
-        }
-
-        $data = User::where('id', session('DangNhap'))->first();
+        if (!session()->has('DangNhap')) return redirect()->route('auth.login');
         
-        // Nếu là quản lý mà vào nhầm trang này thì cho qua trang admin
-        if($data->role === 'quan_ly') {
-            return redirect('/User/trangchu');
-        }
+        $data = User::find(session('DangNhap'));
+        if(!$data || $data->role === 'quan_ly') return redirect('/User/trangchu');
 
-        return view('khachhang.index', compact('data'));
+        // Lọc các bàn có datban_ten trùng với khách đang login
+        $bookings = Ban::where('datban_ten', $data->Ten_dang_nhap)->get();
+        $totalBookings = $bookings->count();
+
+        return view('khachhang.index', compact('data', 'bookings', 'totalBookings'));
     }
 
-    // Cập nhật thông tin khách hàng
+    // CẬP NHẬT THÔNG TIN VÀ ĐỔI MẬT KHẨU
     public function khachHangUpdate(Request $request) {
         $request->validate([
             'SDT' => 'required|digits:10',
             'email' => 'required|email',
-            'password' => 'nullable|min:5|confirmed',
+            'new_password' => 'nullable|min:5|confirmed',
         ]);
 
         $user = User::find(session('DangNhap'));
         $user->SDT = $request->SDT;
         $user->email = $request->email;
         
-        if ($request->password) {
-            $user->password = Hash::make($request->password);
+        if ($request->filled('new_password')) {
+            $user->password = Hash::make($request->new_password);
         }
 
         $user->save();
-        return back()->with('thanhcong', 'Cập nhật thông tin thành công!');
+        return back()->with('thanhcong', 'Cập nhật thành công!');
     }
-    
+
+    // HÀM HỦY ĐẶT BÀN (MỚI)
+    public function khachHangHuyBan($id) {
+        $user = User::find(session('DangNhap'));
+        // Tìm đúng bàn mà khách này đang giữ
+        $ban = Ban::where('ID_ban', $id)->where('datban_ten', $user->Ten_dang_nhap)->first();
+
+        if ($ban) {
+            // Xóa sạch thông tin đặt bàn để trả về bàn trống
+            $ban->dat_truoc = null;
+            $ban->datban_ten = null;
+            $ban->datban_so_nguoi = null;
+            $ban->datban_ngay = null;
+            $ban->datban_time = null;
+            $ban->save();
+            
+            return back()->with('thanhcong', 'Đã hủy đặt bàn thành công!');
+        }
+
+        return back()->with('thatbai', 'Không tìm thấy thông tin đặt bàn.');
+    }
+
+    public function edit($id){ return view('admin.trangchu.sua', ['data'=>User::find($id)]); }
+
+    public function update(Request $request){
+        $data = User::find($request->id);
+        $data->fill($request->only(['Ten_nha_hang', 'Dia_chi', 'SDT', 'email', 'Ten_dang_nhap']));
+        if($request->password) $data->password = Hash::make($request->password);
+        $data->save();
+        return redirect('/User/trangchu');
+    }
+
+    public function destroy($id){
+        User::find($id)->delete();
+        session()->flush();
+        return redirect('/');
+    }
 }

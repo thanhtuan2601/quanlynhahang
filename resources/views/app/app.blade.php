@@ -17,6 +17,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
+    
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 
@@ -61,25 +63,20 @@
                     <a href="/NhaHang"><button type="button" class="btn btn-link px-3 me-2">NHÀ HÀNG</button></a>
 
                     @if (Session::get('DangNhap'))
-                        {{-- PHÂN QUYỀN: Hiện nút tương ứng với vai trò --}}
                         @if (Session::get('UserRole') === 'quan_ly' || Session::get('CheckRole') !== null)
-                            {{-- Nút cho Quản lý hoặc Nhân viên --}}
                             <a href="{{ url('/User/trangchu') }}" class="btn btn-primary btn-rounded me-2">
                                 <i class="fas fa-tasks"></i> QUẢN LÝ
                             </a>
                         @else
-                            {{-- Nút cho Khách hàng --}}
                             <a href="{{ route('khachhang.index') }}" class="btn btn-info btn-rounded me-2 text-white">
                                 <i class="fas fa-user"></i> TRANG CÁ NHÂN
                             </a>
                         @endif
 
-                        {{-- Nút Đăng xuất cho tất cả mọi người đã đăng nhập --}}
                         <a class="btn btn-outline-danger btn-rounded" href="{{ route('auth.logoff') }}">
                             <i class="fas fa-sign-out-alt"></i> ĐĂNG XUẤT
                         </a>
                     @else
-                        {{-- Khi chưa đăng nhập --}}
                         <a class="btn btn-outline-primary btn-rounded" href="{{ route('auth.login') }}">ĐĂNG NHẬP</a>
                         &ensp;
                         <a class="btn btn-primary btn-rounded" href="{{ route('auth.register') }}">ĐĂNG KÝ MIỄN PHÍ</a>
@@ -99,144 +96,56 @@
                     <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
                         <h6 class="text-uppercase fw-bold mb-4"> Liên hệ </h6>
                         <p><i class="fas fa-home me-3"></i> Hà Tĩnh, Việt Nam</p>
-                        <p>
-                            <i class="fas fa-envelope me-3"></i>
-                            restaurantsp@gmail.com
-                        </p>
+                        <p><i class="fas fa-envelope me-3"></i> restaurantsp@gmail.com</p>
                         <p><i class="fas fa-phone me-3"></i> +84 964196652</p>
-                        <p><i class="fas fa-headset me-3"></i> +84 358831047</p><br>
                     </div>
-
                     <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
-                        <h6 class="text-uppercase fw-bold mb-4">
-                            Danh mục
-                        </h6>
-
-                        <p><a href="{{ route('auth.login') }}" class="text-reset"><i
-                                    class="fas fa-angle-right"></i>&nbsp;Quản lý</a></p>
-                        <p><a href="/GioiThieu" class="text-reset"><i class="fas fa-angle-right"></i>&nbsp;Giới
-                                thiệu</a></p>
-                        <p><a href="/NhaHang" class="text-reset"><i class="fas fa-angle-right"></i>&nbsp;Nhà
-                                hàng</a></p>
-                    </div>
-
-                    <div class="col-md-3 col-lg-4 col-xl-2 mx-auto mb-4">
-                        <h6 class="text-uppercase fw-bold mb-4">Tài khoản</h6>
-
-                        <p><a href="{{ route('auth.register') }}" class="text-reset"><i
-                                    class="fas fa-angle-right"></i>&nbsp;Đăng ký</a></p>
-                        <p><a href="{{ route('auth.login') }}" class="text-reset"><i
-                                    class="fas fa-angle-right"></i>&nbsp;Đăng nhập</a></p>
-
-                    </div>
-
-
-                    <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
-                        <h6 class="text-uppercase fw-bold mb-4">
-                            Mạng xã hội
-                        </h6>
-
-                        <a href="https://www.facebook.com/IT0902/" class="me-4 text-primary">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="https://www.facebook.com/IT0902/" class="me-4 text-info">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="https://www.facebook.com/IT0902/" class="me-4 text-warning">
-                            <i class="fab fa-google"></i>
-                        </a>
-                        <a href="https://www.facebook.com/IT0902/" class="me-4 text-danger">
-                            <i class="fab fa-instagram"></i>
-                        </a>
+                        <h6 class="text-uppercase fw-bold mb-4">Danh mục</h6>
+                        <p><a href="/NhaHang" class="text-reset">Nhà hàng</a></p>
                     </div>
                 </div>
             </div>
         </section>
-
-        <section class=" justify-content-center justify-content-lg-between p-4 border-top"
-            style="background-color: #757575;">
-            <div class="text-center me-5 d-none d-lg-block">
-                <span class="text-center text-white">© 2025 Bản quyền thuộc về:
-                    <a class="text-white" href="/">&ensp;RestaurantManager</a>
-                </span>
-            </div>
+        <section class="text-center p-4 border-top" style="background-color: #757575;">
+            <span class="text-white">© 2025 RestaurantManager</span>
         </section>
     </footer>
 
-    <script type="text/javascript" src="{{ URL('js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ URL('js/jquery.rateyo.js') }}"></script>
-
-    <script>
-        $(function() {
-            $(".rateyo").rateYo({
-                starWidth: "30px",
-                rating: "4.5",
-                multiColor: {
-                    "startColor": "#b0e4f5",
-                    "endColor": "#16B5EA"
-                }
-            }).on("rateyo.set", function(e, data) {
-                $('#danh_gia').val(data.rating);
-            });
-        });
-    </script>
-
-    <script>
-        $(function() {
-            $("#rateYo").rateYo({
-                starWidth: "22px",
-                rating: "5.0",
-                readOnly: true,
-                multiColor: {
-                    "startColor": "#16B5EA",
-                    "endColor": "#16B5EA"
-                }
-            }).on("rateyo.set", function(e, data) {
-                $(5).val(data.rating);
-            });
-        });
-    </script>
-
-    <script>
-        $(function() {
-            $("#rate1").rateYo({
-                starWidth: "20px",
-                rating: "5.0",
-                readOnly: true,
-                multiColor: {
-                    "startColor": "#16B5EA",
-                    "endColor": "#16B5EA"
-                }
-            });
-        });
-
-        $(function() {
-            $("#rate2").rateYo({
-                starWidth: "20px",
-                rating: "5.0",
-                readOnly: true,
-                multiColor: {
-                    "startColor": "#16B5EA",
-                    "endColor": "#16B5EA"
-                }
-            });
-        });
-
-        $(function() {
-            $("#rate3").rateYo({
-                starWidth: "20px",
-                rating: "5.0",
-                readOnly: true,
-                multiColor: {
-                    "startColor": "#16B5EA",
-                    "endColor": "#16B5EA"
-                }
-            });
-        });
-    </script>
-
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.js"></script>
     <script src="{{ URL('js/bootstrap.bundle.min.js') }}"></script>
-</body>
 
+    <script>
+        $(document).ready(function() {
+            // 1. Xử lý thông báo ĐẶT BÀN THÀNH CÔNG (Dựa trên biến alert từ Controller)
+            @if(session('alert') == '1')
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đặt bàn thành công!',
+                    text: 'Yêu cầu của bạn đã được gửi tới nhà hàng thành công.',
+                    confirmButtonColor: '#4e73df'
+                });
+            @endif
+
+            // 2. Xử lý thông báo thành công chung (Đăng nhập, cập nhật hồ sơ, v.v.)
+            @if(session('thanhcong'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: '{{ session("thanhcong") }}',
+                    confirmButtonColor: '#4e73df'
+                });
+            @endif
+
+            // 3. Xử lý thông báo lỗi (Thất bại)
+            @if(session('thatbai'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thất bại!',
+                    text: '{{ session("thatbai") }}',
+                    confirmButtonColor: '#e74a3b'
+                });
+            @endif
+        });
+    </script>
+</body>
 </html>

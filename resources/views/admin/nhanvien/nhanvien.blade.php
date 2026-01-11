@@ -15,8 +15,7 @@
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Tên</th>
+                            <th scope="col">STT</th> <th scope="col">Tên</th>
                             <th scope="col">Chức vụ</th>
                             <th scope="col">Giới tính</th>
                             <th scope="col">Địa chỉ</th>
@@ -26,10 +25,15 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {{-- BƯỚC 1: Khởi tạo biến đếm STT bắt đầu từ 1 --}}
+                        @php $stt = 1; @endphp
+
                         @foreach ($nhanviens as $nhanvien)
                             @if ($nhanvien['ID_nha_hang'] == $data['id'])
                                 <tr>
-                                    <th scope="row">{{ $nhanvien['ID_nhan_vien'] }}</th>
+                                    {{-- BƯỚC 2: Hiển thị STT tự tăng --}}
+                                    <th scope="row">{{ $stt++ }}</th>
+                                    
                                     <td>{{ $nhanvien['ten_nhan_vien'] }}</td>
                                     <td>{{ $nhanvien['chuc_vu'] }}</td>
                                     <td>{{ $nhanvien['gioi_tinh'] }}</td>
@@ -37,7 +41,6 @@
                                     <td>{{ $nhanvien['sdt'] }}</td>
                                     <td>{{ $nhanvien['tai_khoan'] }}</td>
                                     <td>
-                                        <!-- <a href="" type="button" class="btn btn-success btn-rounded" target="_blank">Xem</a> -->
                                         <a href="/User/nhanvien/xem/id={{ $nhanvien['ID_nhan_vien'] }}" type="button" class="btn btn-success btn-rounded">Xem</a>
                                         <a href="/User/nhanvien/sua/id={{ $nhanvien['ID_nhan_vien'] }}" type="button" class="btn btn-warning btn-rounded">Sửa</a>
                                         <a href="/User/nhanvien/xoa/id={{ $nhanvien['ID_nhan_vien'] }}"
@@ -69,26 +72,10 @@
                 <div class="col-12">
                     <a href="/User/nhanvien/them" type="button" class="btn btn-info">Thêm nhân viên</a>
                 </div>
-                <!-- <br><br>
-                <div class="col-12">
-                    <button class="btn btn-info dropdown-toggle" type="button" id="MonAn" data-mdb-toggle="dropdown"
-                        aria-expanded="false">Các chức vụ</button>
-                    <ul class="dropdown-menu" aria-labelledby="MonAn">
-                        <li><a class="dropdown-item" href="#">Admin</a></li>
-                        <li><a class="dropdown-item" href="#">Phục vụ</a></li>
-                        <li><a class="dropdown-item" href="#">Đầu bếp</a></li>
-                        <li><a class="dropdown-item" href="#">Thu ngân</a></li>
-                    </ul>
-                    &emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;
-                    <button type="button" class="btn btn-primary btn-rounded">Thêm</button>
-                    <button type="button" class="btn btn-warning btn-rounded">Sửa</button>
-                    <button type="button" class="btn btn-danger btn-rounded">Xóa</button>
-                </div> -->
             </div>
         </div>
     </div>
 
     <br>
-
 
 @endsection

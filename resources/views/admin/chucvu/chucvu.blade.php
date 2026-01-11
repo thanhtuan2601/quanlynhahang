@@ -11,27 +11,30 @@
 
         <div class="card-body">
             <div class="table-responsive">
-                <!-- table-hover -->
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Tên chức vụ</th>
+                            <th scope="col">STT</th> <th scope="col">Tên chức vụ</th>
                             <th scope="col">Mô tả</th>
                             <th scope="col">Quyền truy cập</th>
                             <th scope="col">Thay đổi</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {{-- BƯỚC 1: Khởi tạo biến đếm STT bắt đầu từ 1 --}}
+                        @php $stt = 1; @endphp
+
                         @foreach ($chucvus as $chucvu)
                             @if ($chucvu['ID_nha_hang'] == $data['id'])
                                 <tr>
-                                    <th scope="row">{{ $chucvu['ID_chuc_vu'] }}</th>
+                                    {{-- BƯỚC 2: Hiển thị STT tự tăng --}}
+                                    <th scope="row">{{ $stt++ }}</th>
+                                    
                                     <td>{{ $chucvu['ten_chuc_vu'] }}</td>
                                     <td>{{ $chucvu['mo_ta'] }}</td>
 
-                                    @if ($quyens = unserialize($chucvu['quyen']))@endif
-                                    <td>{{ $string = implode(', ', $quyens) }}</td>
+                                    @php $quyens = unserialize($chucvu['quyen']); @endphp
+                                    <td>{{ implode(', ', $quyens) }}</td>
 
                                     <td>
                                         <a href="/User/chucvu/sua/id={{ $chucvu['ID_chuc_vu'] }}"
@@ -56,7 +59,6 @@
         </div>
 
     </div>
-
 
     <div class="card shadow">
         <div class="card-header">
@@ -89,8 +91,6 @@
             @endif
         </div>
     </div>
-
-
 
     <br>
 @endsection

@@ -25,10 +25,9 @@
                 <datalist id="ten_ban">
                     @foreach ($bans as $ban)
                     @if($ban['ID_nha_hang'] == $data['id'])
-
                     <option value="{{$ban['ten_ban']}}">
-                        @endif
-                        @endforeach
+                    @endif
+                    @endforeach
                 </datalist>
 
                 <div class="col-3">
@@ -40,10 +39,9 @@
                     <datalist id="ten_mon">
                         @foreach ($monans as $monan)
                         @if($monan['ID_nha_hang'] == $data['id'])
-
                         <option value="{{$monan['ten_mon']}}">
-                            @endif
-                            @endforeach
+                        @endif
+                        @endforeach
                     </datalist>
                 </div>
 
@@ -65,10 +63,7 @@
                             <i class="fas fa-plus"></i>
                         </div>
                     </div>
-
                 </div>
-
-
 
                 <div class="col-3">
                     <div class="float-end">
@@ -83,8 +78,7 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Tên bàn</th>
+                        <th scope="col">STT</th> <th scope="col">Tên bàn</th>
                         <th scope="col">Tên món</th>
                         <th scope="col">Số lượng</th>
                         <th scope="col">Đơn giá</th>
@@ -93,11 +87,16 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {{-- BƯỚC 1: Khởi tạo biến đếm STT --}}
+                    @php $stt = 1; @endphp
+
                     @foreach ($datmons as $datmon)
                     @if($datmon['ID_nha_hang'] == $data['id'])
 
                     <tr>
-                        <th scope="row">{{$datmon['ID_dat_mon']}}</th>
+                        {{-- BƯỚC 2: Hiển thị STT tự tăng --}}
+                        <th scope="row">{{ $stt++ }}</th>
+                        
                         <td>{{$datmon['ten_ban']}}</td>
                         <td>{{$datmon['ten_mon']}}</td>
                         <td>{{$datmon['so_luong']}}</td>
@@ -122,12 +121,6 @@
                 $('#dataTable').DataTable();
             });
             </script>
-
-            <!-- <hr>
-            <h5 class="card-title text-success" style="margin-top: 10px">
-                Số tiền phải trả: 950.000 VND
-            </h5> -->
-
         </div>
     </div>
 </div>
@@ -141,12 +134,10 @@
             <h5 class="card-title text-success" style="margin-top: 10px">
                 Tổng số tiền phải trả: {{number_format($tong_tien['tong_tien'])}} VNĐ ({{$tong_tien['ten_ban_thanh_toan']}})
             </h5>
-
         </div>
     </div>
     <div class="card-body">
         
-        <!-- <br> -->
         <form action="/User/datmon/chuyenban" method="POST">
             @csrf
             <div class="float-start">

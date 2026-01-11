@@ -119,8 +119,8 @@ Route::group(['middleware' => ['AdminAuth']], function() {
 
 
 // =============================================================
-// 3. NHÓM ROUTE DÀNH RIÊNG CHO KHÁCH HÀNG (ĐÃ TÁCH RA)
+// 3. NHÓM ROUTE DÀNH RIÊNG CHO KHÁCH HÀNG
 // =============================================================
-// Không để trong AdminAuth vì AdminAuth sẽ chặn Khách hàng
 Route::get('/KhachHang/trangchu', [MainController::class, 'khachHangIndex'])->name('khachhang.index');
 Route::post('/KhachHang/update', [MainController::class, 'khachHangUpdate'])->name('khachhang.update');
+Route::get('/KhachHang/huy-ban/{id}', [MainController::class, 'khachHangHuyBan'])->name('khachhang.huyban');
