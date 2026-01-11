@@ -30,6 +30,7 @@ class User extends Authenticatable
      * @var string[]
      */
     protected $fillable = [
+        'role',
         'Ten_nha_hang', 
         'Dia_chi', 
         'SDT', 

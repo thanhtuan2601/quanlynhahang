@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RestaurantManager | Đăng Ký</title>
-	<link rel="shortcut icon" type="image/x-icon" href="{{ URL('images2/spatula2.svg') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ URL('images2/spatula2.svg') }}">
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
@@ -23,41 +23,51 @@
 
                                 <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-1">
                                     <div class="text-center">
-
                                         <img src="{{ URL('images1/register.png') }}" class="img-fluid" alt="Sample image">
-                                        <!-- <h4 >Restaurant Manager</h4> -->
                                         <a class="mt-1 mb-2 pb-1 text-black" href="/">Tạo tài khoản và bắt đầu quản lý
-                                            nhà hàng của bạn một cách chuyên nghiệp.</a>
+                                            nhà hàng hoặc đặt bàn một cách chuyên nghiệp.</a>
                                     </div>
                                 </div>
 
                                 <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-2">
-                                    <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Đăng ký nhà hàng</p>
+                                    <p id="register-title" class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Đăng ký Quản lý</p>
 
                                     <form class="mx-1 mx-md-4" method="POST" action="{{ route('registerStore') }}">
                                         @csrf
 
                                         <div class="d-flex flex-row align-items-center mt-4">
-                                            <i class="fas fa-utensils fa-lg me-3 fa-fw"></i>
-                                            <div class="form-outline flex-fill mb-0">
-                                                <input type="text" id="Ten_nha_hang" name="Ten_nha_hang" value="{{ old('Ten_nha_hang') }}" required autofocus
-                                                    autocomplete="Ten_nha_hang" class="form-control" />
-                                                <label class="form-label" for="Ten_nha_hang">Tên nhà hàng</label>
-                                            </div>
-                                        </div>
-                                        <p class="text-danger">@error('Ten_nha_hang')
-                                            {{ $message }}
-                                        @enderror</p>
-
-                                        <div class="d-flex flex-row align-items-center mt-4">
-                                            <i class="fas fa-map-marker-alt fa-lg me-3 fa-fw"></i>
-                                            <div class="form-outline flex-fill mb-0">
-                                                <input type="text" id="Dia_chi" name="Dia_chi" value="{{ old('Dia_chi') }}"
-                                                    required autofocus autocomplete="Dia_chi" class="form-control" />
-                                                <label class="form-label" for="Dia_chi">Địa chỉ</label>
+                                            <i class="fas fa-user-tag fa-lg me-3 fa-fw"></i>
+                                            <div class="flex-fill mb-0">
+                                                <select name="role" id="role" class="form-select" onchange="toggleFields()">
+                                                    <option value="quan_ly" {{ old('role') == 'quan_ly' ? 'selected' : '' }}>Tôi là Quản lý nhà hàng</option>
+                                                    <option value="khach_hang" {{ old('role') == 'khach_hang' ? 'selected' : '' }}>Tôi là Khách hàng (Đặt bàn)</option>
+                                                </select>
                                             </div>
                                         </div>
 
+                                        <div id="group_ten_nha_hang">
+                                            <div class="d-flex flex-row align-items-center mt-4">
+                                                <i class="fas fa-utensils fa-lg me-3 fa-fw"></i>
+                                                <div class="form-outline flex-fill mb-0">
+                                                    <input type="text" id="Ten_nha_hang" name="Ten_nha_hang" value="{{ old('Ten_nha_hang') }}"
+                                                        autocomplete="Ten_nha_hang" class="form-control" />
+                                                    <label class="form-label" for="Ten_nha_hang">Tên nhà hàng</label>
+                                                </div>
+                                            </div>
+                                            <p class="text-danger">@error('Ten_nha_hang') {{ $message }} @enderror</p>
+                                        </div>
+
+                                        <div id="group_dia_chi">
+                                            <div class="d-flex flex-row align-items-center mt-4">
+                                                <i class="fas fa-map-marker-alt fa-lg me-3 fa-fw"></i>
+                                                <div class="form-outline flex-fill mb-0">
+                                                    <input type="text" id="Dia_chi" name="Dia_chi" value="{{ old('Dia_chi') }}"
+                                                        autocomplete="Dia_chi" class="form-control" />
+                                                    <label class="form-label" for="Dia_chi">Địa chỉ</label>
+                                                </div>
+                                            </div>
+                                            <p class="text-danger">@error('Dia_chi') {{ $message }} @enderror</p>
+                                        </div>
 
                                         <div class="d-flex flex-row align-items-center mt-4">
                                             <i class="fas fa-phone fa-lg me-3 fa-fw"></i>
@@ -67,17 +77,7 @@
                                                 <label class="form-label" for="SDT">Số điện thoại</label>
                                             </div>
                                         </div>
-                                        <p class="text-danger">@error('SDT')
-                                            {{ $message }}
-                                        @enderror</p>
-
-                                        <!--   <div class="d-flex flex-row align-items-center mt-4">
-                                            <i class="fas fa-user fa-lg me-3 fa-fw"></i>
-                                            <div class="form-outline flex-fill mb-0">
-                                                <input type="text" id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" class="form-control" />
-                                                <label class="form-label" for="name">Name</label>
-                                            </div>
-                                        </div> -->
+                                        <p class="text-danger">@error('SDT') {{ $message }} @enderror</p>
 
                                         <div class="d-flex flex-row align-items-center mt-4">
                                             <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
@@ -86,9 +86,7 @@
                                                 <label class="form-label" for="email">Email</label>
                                             </div>
                                         </div>
-                                        <p class="text-danger">@error('email')
-                                            {{ $message }}
-                                        @enderror</p>
+                                        <p class="text-danger">@error('email') {{ $message }} @enderror</p>
 
                                         <div class="d-flex flex-row align-items-center mt-4">
                                             <i class="fas fa-user-edit fa-lg me-3 fa-fw"></i>
@@ -98,9 +96,7 @@
                                                 <label class="form-label" for="Ten_dang_nhap">Tên đăng nhập</label>
                                             </div>
                                         </div>
-                                        <p class="text-danger">@error('Ten_dang_nhap')
-                                            {{ $message }}
-                                        @enderror</p>
+                                        <p class="text-danger">@error('Ten_dang_nhap') {{ $message }} @enderror</p>
 
                                         <div class="d-flex flex-row align-items-center mt-4">
                                             <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
@@ -109,34 +105,20 @@
                                                     name="password" required autocomplete="new-password" />
                                                 <label class="form-label" for="password">Mật khẩu</label>
                                             </div>
-
                                         </div>
-                                        <p class="text-danger">@error('password')
-                                            {{ $message }}
-                                        @enderror</p>
+                                        <p class="text-danger">@error('password') {{ $message }} @enderror</p>
 
                                         <div class="d-flex flex-row align-items-center mt-4">
                                             <i class="fas fa-key fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
                                                 <input id="password_confirmation" class="form-control" type="password"
                                                     name="password_confirmation" required autocomplete="new-password" />
-                                                <label class="form-label" for="password_confirmation">Nhập lại mật
-                                                    khẩu</label>
+                                                <label class="form-label" for="password_confirmation">Nhập lại mật khẩu</label>
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col d-flex justify-content-center">
-                                            <div class="form-check d-flex justify-content-center mt-4">
-                                                <input class="form-check-input" type="checkbox" value="" id="form2Example34"/>
-                                                <label class="form-check-label" for="form2Example34"> 
-                                                    Tôi đồng ý tất cả tuyên bố trong <a href="#!">Điều khoản dịch vụ</a>
-                                                </label>
-                                            </div>
-                                        </div> --}}
-
                                         <div class="d-flex justify-content-center mx mt-3 mb-lg-4">
-                                            <button type="submit" class="btn btn-primary btn-lg btn-block">Đăng
-                                                ký</button>
+                                            <button type="submit" class="btn btn-primary btn-lg btn-block">Đăng ký</button>
                                         </div>
 
                                         <div class="d-flex align-items-center justify-content-center pb-1">
@@ -155,6 +137,28 @@
     </section>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.js"></script>
+
+    <script>
+        function toggleFields() {
+            var role = document.getElementById('role').value;
+            var groupTen = document.getElementById('group_ten_nha_hang');
+            var groupDiaChi = document.getElementById('group_dia_chi');
+            var title = document.getElementById('register-title');
+
+            if (role === 'khach_hang') {
+                groupTen.style.display = 'none';
+                groupDiaChi.style.display = 'none';
+                title.innerText = 'Đăng ký Khách hàng';
+            } else {
+                groupTen.style.display = 'block';
+                groupDiaChi.style.display = 'block';
+                title.innerText = 'Đăng ký Quản lý';
+            }
+        }
+
+        // Chạy hàm khi trang vừa tải xong để giữ trạng thái nếu có lỗi validation
+        window.onload = toggleFields;
+    </script>
 </body>
 
 </html>

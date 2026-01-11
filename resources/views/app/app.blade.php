@@ -217,8 +217,8 @@
         <section class=" justify-content-center justify-content-lg-between p-4 border-top"
             style="background-color: #757575;">
             <div class="text-center me-5 d-none d-lg-block">
-                <span class="text-center text-white">© 2021 Bản quyền thuộc về:
-                    <a class="text-white" href="/">&ensp;RestaurantManager (Văn Bằng ~ Vĩnh Uy)</a>
+                <span class="text-center text-white">© 2025 Bản quyền thuộc về:
+                    <a class="text-white" href="/">&ensp;RestaurantManager</a>
                 </span>
             </div>
         </section>
